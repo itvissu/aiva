@@ -1,0 +1,33 @@
+machine:
+  python:
+    version: 3.5.1
+  node:
+    version: 6
+  services:
+    - mysql
+    - neo4j
+
+dependencies:
+  override:
+    - pip install autocorrect
+    - pip install socketIO-client
+    - pip install spacy
+    - python -m sputnik --name spacy find || python -m spacy.en.download
+    - npm install
+
+database:
+  override:
+    - mv config/db.ci.json config/db.json
+    - node src/db.js
+    - node_modules/.bin/sequelize db:migrate --env test
+
+test:
+  override:
+    - npm test
+  post:
+    - cat ./coverage/lcov.info | ./node_modules/.bin/codacy-coverage
+
+general:
+  branches:
+    ignore:
+      - gh-pages
